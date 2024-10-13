@@ -67,14 +67,13 @@ func main() {
 		        }
 		    }`
 
-			dockerConfigBase64 := base64.StdEncoding.EncodeToString([]byte(dockerConfigJson))
 			secret := &v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: cfg.K8S_SECRET_NAME,
 				},
 				Type: v1.SecretTypeDockerConfigJson,
 				Data: map[string][]byte{
-					v1.DockerConfigJsonKey: []byte(dockerConfigBase64),
+					v1.DockerConfigJsonKey: []byte(dockerConfigJson),
 				},
 			}
 			if _, err := clientset.CoreV1().Secrets(cfg.K8S_NAMESPACE).Create(ctx, secret, metav1.CreateOptions{}); err != nil {
