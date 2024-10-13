@@ -57,15 +57,15 @@ func main() {
 
 			// Create the secret
 			dockerConfigJson := `{
-	        "auths": {
-	            "` + cfg.DOCKER_SERVER + `": {
-	                "username": "AWS",
-	                "password": "` + password + `",
-	                "email": "` + cfg.DOCKER_EMAIL + `",
-	                "auth": "` + base64.StdEncoding.EncodeToString([]byte("AWS:"+password)) + `"
-	            }
-	        }
-	    }`
+		        "auths": {
+		            "` + cfg.DOCKER_SERVER + `": {
+		                "username": "AWS",
+		                "password": "` + password + `",
+		                "email": "` + cfg.DOCKER_EMAIL + `",
+		                "auth": "` + base64.StdEncoding.EncodeToString([]byte("AWS:"+password)) + `"
+		            }
+		        }
+		    }`
 
 			dockerConfigBase64 := base64.StdEncoding.EncodeToString([]byte(dockerConfigJson))
 			secret := &v1.Secret{
