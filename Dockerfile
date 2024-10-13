@@ -9,7 +9,7 @@ RUN go mod download
 
 COPY . /app
 
-RUN CGO_ENABLED=0 go build -o /app/application /app/main.go
+RUN CGO_ENABLED=0 go build -o /app/application /app/*.go
 
 FROM scratch
 
