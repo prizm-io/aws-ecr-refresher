@@ -57,7 +57,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}:${{ matrix.architecture }}
+          tags: ${{ steps.meta.outputs.tags }}.${{ matrix.architecture }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/${{ matrix.architecture }}
 
