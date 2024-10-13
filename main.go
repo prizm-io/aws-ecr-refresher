@@ -24,6 +24,7 @@ var (
 )
 
 func main() {
+	cfg := NewConfig()
 	// creates the in-cluster config
 	k8sConfig, err := rest.InClusterConfig()
 	if err != nil {
@@ -38,9 +39,9 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	go func(ctx context.Context) {
+	go func(cfg *Config, ctx context.Context) {
 		for {
-			password, err := getLoginPassword(ctx, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION)
+			password, err := getLoginPassword(ctx, cfg.AWS_ACCESS_KEY_ID, cfg.AWS_SECRET_ACCESS_KEY, cfg.AWS_REGION)
 			if err != nil {
 				log.Printf("[error] failed to get login password: %v, retrying in 10 minutes", err)
 				time.Sleep(errSleepDuration)
@@ -48,7 +49,7 @@ func main() {
 			}
 
 			// Delete the secret
-			if err := clientset.CoreV1().Secrets(K8S_NAMESPACE).Delete(ctx, K8S_SECRET_NAME, metav1.DeleteOptions{}); err != nil {
+			if err := clientset.CoreV1().Secrets(cfg.K8S_NAMESPACE).Delete(ctx, cfg.K8S_SECRET_NAME, metav1.DeleteOptions{}); err != nil {
 				log.Printf("[error] failed to delete secret: %v", err)
 				time.Sleep(errSleepDuration)
 				continue
@@ -57,10 +58,10 @@ func main() {
 			// Create the secret
 			dockerConfigJson := `{
 	        "auths": {
-	            "` + DOCKER_SERVER + `": {
+	            "` + cfg.DOCKER_SERVER + `": {
 	                "username": "AWS",
 	                "password": "` + password + `",
-	                "email": "` + DOCKER_EMAIL + `",
+	                "email": "` + cfg.DOCKER_EMAIL + `",
 	                "auth": "` + base64.StdEncoding.EncodeToString([]byte("AWS:"+password)) + `"
 	            }
 	        }
@@ -69,14 +70,14 @@ func main() {
 			dockerConfigBase64 := base64.StdEncoding.EncodeToString([]byte(dockerConfigJson))
 			secret := &v1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: K8S_SECRET_NAME,
+					Name: cfg.K8S_SECRET_NAME,
 				},
 				Type: v1.SecretTypeDockerConfigJson,
 				Data: map[string][]byte{
 					v1.DockerConfigJsonKey: []byte(dockerConfigBase64),
 				},
 			}
-			if _, err := clientset.CoreV1().Secrets(K8S_NAMESPACE).Create(ctx, secret, metav1.CreateOptions{}); err != nil {
+			if _, err := clientset.CoreV1().Secrets(cfg.K8S_NAMESPACE).Create(ctx, secret, metav1.CreateOptions{}); err != nil {
 				log.Printf("[error] failed to create secret: %v", err)
 				time.Sleep(errSleepDuration)
 				continue
@@ -87,7 +88,7 @@ func main() {
 			// Sleep for 10 hours
 			time.Sleep(10 * time.Hour)
 		}
-	}(ctx)
+	}(cfg, ctx)
 
 	<-ctx.Done()
 
