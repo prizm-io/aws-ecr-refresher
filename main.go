@@ -50,9 +50,7 @@ func main() {
 
 			// Delete the secret
 			if err := clientset.CoreV1().Secrets(cfg.K8S_NAMESPACE).Delete(ctx, cfg.K8S_SECRET_NAME, metav1.DeleteOptions{}); err != nil {
-				log.Printf("[error] failed to delete secret: %v", err)
-				time.Sleep(errSleepDuration)
-				continue
+				log.Printf("[warn] failed to delete secret: %v, skipping to next", err)
 			}
 
 			// Create the secret
