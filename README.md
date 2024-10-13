@@ -59,3 +59,29 @@ roleRef:
   apiGroup: ""
 ---
 ```
+
+## Example Deployment
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: refresher-deployment
+spec:
+  replicas: 1 # Always one
+  selector:
+    matchLabels:
+      app: refresher
+  template:
+    metadata:
+      labels:
+        app: refresher
+    spec:
+      serviceAccountName: sa-health-check
+      containers:
+        - name: refresher
+          image: ghcr.io/prizm-io/aws-ecr-refresher:main
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: ecr-registry-helper-secrets
+```
